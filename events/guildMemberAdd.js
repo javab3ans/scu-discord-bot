@@ -24,7 +24,7 @@ module.exports = async (client, member) => {
       .setDescription(
         ":one:  If you're new to Discord, this short [tutorial](https://youtu.be/rnYGrq95ezA) can help you get started! \n\n" +
         `:two: Please follow the instructions in the <#${client.config.channels.access}> to __**immediately**__ verify yourself and get roles in the SCU server! It'll only take a couple seconds! Note: If you're a **Guest** or **Prospective Student**, you are exempted from this requirement. \n\n` +
-        ":three: If you have any technical issues :computer:, feel free to contact **ADMIN** or **MOD** for help!\n\n" +
+        ":three: If you have any technical issues :computer:, feel free to open a support ticket for help!\n\n" +
         "Thank you for your cooperation and Go Broncos! :racehorse:"
       )
       .attachFiles(["./assets/logo-pic.png"])
