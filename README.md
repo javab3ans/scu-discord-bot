@@ -19,12 +19,6 @@
   <img src="https://raw.githubusercontent.com/javab3ans/scu-discord-bot/master/assets/logo-pic.png"> 
 </p>
 
-## Main Commands
-- Here are all of the bot's commands:
-  - [Admins category!](https://github.com/javab3ans/scu-discord-bot/tree/master/commands/admins)
-  - [Utility category!](https://github.com/javab3ans/scu-discord-bot/tree/master/commands/utility)
-  - [Fun category!](https://github.com/javab3ans/scu-discord-bot/tree/master/commands/fun)
-
 ## Implementation
 - Node JS and the Discord JS library are used to build the Discord bot. The library provides a simple way to interact with the Discord API. Node.js was chosen because various npm libraries proved to be extremely useful.
 
