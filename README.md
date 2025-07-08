@@ -10,7 +10,7 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/JAVAB3ANS/scu-discord-bot)
 ![GitHub package.json dependency version (prod)](https://img.shields.io/github/package-json/dependency-version/JAVAB3ANS/scu-discord-bot/discord.js)  
 
-- This is a 24/7 bot that created for the **Santa Clara University Discord Network** to provide a comprehensive social media platform for Santa Clara University students to hang out and build community.
+- This is a 24/7 bot created for the **Santa Clara University Discord Network** to provide a comprehensive social media platform for Santa Clara University students to hang out and build community.
 
 - Made use of the Node.js environment and the Node module Discord.js to create a bot that greets/sends direct messages, interacts with students, and performs a variety of automated tasks to improve the server experience. 
 
@@ -21,8 +21,6 @@
 
 ## Implementation
 - Node JS and the Discord JS library are used to build the Discord bot. The library provides a simple way to interact with the Discord API. Node.js was chosen because various npm libraries proved to be extremely useful.
-
-- The following section will go over each feature, their implementation options, and any mistakes or learning points that could be improved.
 
 ## Bot Interaction
 - The bot's purpose is to respond to chat messages. Messages to the bot are prefixed with ```&```, which precedes any given command the user would like to use, to distinguish when the bot should respond. For example, to find out the current ping and latency of the bot's API, type ```&ping```.
