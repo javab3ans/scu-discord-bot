@@ -15,7 +15,7 @@ module.exports = async (client, message) => {
     .setAuthor(message.author.tag, message.author.displayAvatarURL()); 
   
       try {
-      //Check if message is in a direct message and mentions bot
+      // Check if message is in a direct message and mentions bot
       if (message.channel.type === "dm" && message.mentions.has(client.user)) {   
         const userTicketContent = message.content.split(" ").slice(1).join(" "); 
         if (userTicketContent.length > 1) {
@@ -32,19 +32,15 @@ module.exports = async (client, message) => {
             found = false;
           }
 
-          if (!active || !found) { //create support channel for new respondee  
+          if (!active || !found) { // create support channel for new respondee  
             try {
               active = {};
               channel = await guild.channels.create(`${message.author.username}-${message.author.discriminator}`);     
-              channel.setParent(client.config.channels.supportTicketsCategory); //sync text channel to category permissions
+              channel.setParent(client.config.channels.supportTicketsCategory); // sync text channel to category permissions
               channel.setTopic(`Use **${client.config.prefix}cmds** to utilize the Ticket | ModMail commands on behalf of <@${message.author.id}>`);
 
               let perms = [{ id: client.config.verification.guildID, deny: ["VIEW_CHANNEL"]}];
               let permissionFlags = ["VIEW_CHANNEL", "SEND_MESSAGES", "ADD_REACTIONS", "READ_MESSAGE_HISTORY", "MANAGE_CHANNELS", "MANAGE_MESSAGES", "ADD_REACTIONS", "USE_EXTERNAL_EMOJIS"];
-
-              client.config.serverRoles.modRoles.forEach((role) => {
-                perms.push({id: role, allow: permissionFlags });
-              });
 
               channel.overwritePermissions(perms);
             } catch (err) {
@@ -104,13 +100,13 @@ module.exports = async (client, message) => {
       const isPause = await db.get(`suspended${support.targetID}`);
       const modmailArgs = message.content.split(" ").slice(1);   
 
-      switch (message.content.split(" ")[0].slice(1).toLowerCase()) { //if message content in the support user channel is a modmail command, execute the results...
-        case "cmds": //on default, give list of modmail sub-commands :)
+      switch (message.content.split(" ")[0].slice(1).toLowerCase()) { // if message content in the support user channel is a modmail command, execute the results...
+        case "cmds": // on default, give list of modmail sub-commands :)
           messageReception.setTitle("**MODMAIL COMMANDS!**").setColor(client.config.default_color).setDescription(modmailCommands());
           await message.channel.send(messageReception);
           break; 
 
-        case "complete": //close the user`s ticket after they`re done and log it!
+        case "complete": // close the user`s ticket after they`re done and log it!
           if(isPause === true || isPause === "true") return client.error("Continue the support user's thread before completing the ticket!", message); 
 
           messageReception.setTitle("ModMail Ticket Resolved").setFooter(`ModMail Ticket Closed -- ${supportUser.tag}`)
@@ -131,26 +127,26 @@ module.exports = async (client, message) => {
             }
           }
 
-          /*this section of the code is for creating a transcript for a channel created by my bot's ticketing 
+          /* this section of the code is for creating a transcript for a channel created by my bot's ticketing 
           implementation, which normally wouldn't have much messages anyways unless someone were to spam haha */         
 
           let msgs = messageCollection.array().reverse();
-          fs.readFile("./assets/templateFiles/template.html", "utf8", function (err, data) {  //goes into my directory for create the log's HTML/CSS template
+          fs.readFile("./assets/templateFiles/template.html", "utf8", function (err, data) {  // goes into my directory for create the log's HTML/CSS template
             const filePath = `./events/modmailLogs/index_${supportUser.tag}.html`; 
-            //names file after user's Discord tag and saves to my modmail file logs on my Raspberry Pi
+            // names file after user's Discord tag and saves to my modmail file logs on my DigitalOcean Linux droplet
             fs.writeFile(filePath, data, function (err, data) { 
 
               let guildElement = document.createElement("div");
               guildElement.className = "img-container";
 
-              //creates first image which is the SCU banner :)
+              // creates first image which is the SCU banner :)
 
               let guildBannerImg = document.createElement("img");
               guildBannerImg.setAttribute("src", "https://raw.githubusercontent.com/JAVAB3ANS/scu-discord-bot/master/assets/scu_banner.png?raw=true");
               guildBannerImg.setAttribute("width", "500");
               guildElement.appendChild(guildBannerImg);
 
-              let guildBreak = document.createElement("br"); //creates break element between these two images
+              let guildBreak = document.createElement("br"); // creates break element between these two images
               guildElement.appendChild(guildBreak);
 
               // creates second image which says "Modmail Ticket!"
@@ -164,7 +160,7 @@ module.exports = async (client, message) => {
                 if (err) return; 
               });
 
-              //for each normal user message sent in the ticketing channel, put them in a div and nest elements in their respective places
+              // for each normal user message sent in the ticketing channel, put them in a div and nest elements in their respective places
               msgs.forEach(async (msg) => {
                 let parentContainer = document.createElement("div");
                 parentContainer.className = "parent-container";
@@ -186,12 +182,12 @@ module.exports = async (client, message) => {
 
                 let nameElement = document.createElement("span");
                 let name = document.createTextNode(`[${msg.author.tag}] [${msg.createdAt.toDateString()}] [${msg.createdAt.toLocaleTimeString()} PST]`); 
-                //gets time of message, the message author's tag, and the date it was sent and puts it in a span element in HTML
+                // gets time of message, the message author's tag, and the date it was sent and puts it in a span element in HTML
                 nameElement.appendChild(name);
                 messageContainer.append(nameElement);
 
-                //for each embed message sent from the bot, iterate through all of them and create paragraph element for each one
-                //then apply span element to each to divide up the title, description, and footer into viewable sections
+                // for each embed message sent from the bot, iterate through all of them and create paragraph element for each one
+                // then apply span element to each to divide up the title, description, and footer into viewable sections
 
                 for (const embed of msg.embeds) {
                   try {
