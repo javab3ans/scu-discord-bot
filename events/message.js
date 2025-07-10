@@ -315,11 +315,11 @@ module.exports = async (client, message) => {
             .setThumbnail("attachment://paused.gif")
             .setFooter(`ModMail Ticket Paused -- ${supportUser.tag}`);
 
-          await supportUser.send({ embeds: [messageReception] });
+          await supportUser.send(messageReception);
 
           messageReception.setDescription(`Admin, please use \`${client.config.prefix}continue\` to cancel.`);
 
-          await message.channel.send({ embeds: [messageReception] });
+          await message.channel.send(messageReception);
           log(client, client.config.channels.auditlogs, { embed: messageReception });
           break;
 
@@ -343,8 +343,8 @@ module.exports = async (client, message) => {
             if (url) replyEmbed.setImage(url);
           }
 
-          await supportUser.send({ embeds: [replyEmbed] });
-          await message.channel.send({ embeds: [replyEmbed] });
+          await supportUser.send(replyEmbed);
+          await message.channel.send(replyEmbed);
           log(client, client.config.channels.auditlogs, { embed: replyEmbed });
           break;
 
