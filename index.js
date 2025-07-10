@@ -46,7 +46,7 @@ client.dispatcher.addInhibitor( (client, msg) => {
 }); 
 
 client.once("ready", () => {
-  client.user.setPresence({activity: { name: `${client.config.prefix}help || DM me for help!` }, status: "online"});  
+  client.user.setPresence({activity: { name: `DM me for help!` }, status: "online"});  
 
   log(client, client.config.channels.auditlogs, { embed: { title: "Hooray!", description: "All commands and events work! :white_check_mark:", color: "GREEN"}});
 });
