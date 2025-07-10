@@ -1,92 +1,99 @@
 const { Command } = require("discord.js-commando");
+const Discord = require("discord.js");
 
-module.exports = class announceCommand extends Command {
+module.exports = class AnnounceCommand extends Command {
   constructor(client) {
     super(client, {
       name: "announce",
       group: "admins",
-      memberName: "announce", 
+      memberName: "announce",
+      description: "Make a formatted announcement using embed data",
       throttling: {
-          usages: 2,
-          duration: 5,
-			},
-      description: "Make a formatted announcement using embed data", 
+        usages: 2,
+        duration: 5,
+      },
       args: [
         {
           key: "option",
-          prompt: "Please choose a valid option \`edit, append, embed\`",
+          prompt: "Please choose a valid option `edit`, `append`, or `embed`",
           type: "string",
           oneOf: ["edit", "append", "embed"],
         },
         {
           key: "id",
-          prompt: "Please provide a message id to edit or mention a channel to send this message to",
+          prompt: "Provide a message ID to edit or a channel mention/ID to send the embed.",
           type: "string",
           validate: (id) => {
-            if(id.match(/^[0-9]*$/) && id.length === 18) {
-              return true;
-            } else {
-                return "Please enter a proper snowflake!"
-            }
-          }
-        }, 
+            if (/^[0-9]{17,20}$/.test(id)) return true;
+            return "Please enter a valid Discord snowflake (17–20 digits)!";
+          },
+        },
         {
           key: "body",
-          prompt: "Please provide some body text.",
+          prompt: "Please provide embed body (as JSON).",
           type: "string",
           validate: (body) => {
-            if (body.length < 2048) {
+            try {
+              const parsed = JSON.parse(body);
+              if (parsed.description && parsed.description.length > 2048)
+                return "Embed description must be under 2048 characters!";
               return true;
-            } else {
-                return "Please enter embed description under 2048 characters!";
+            } catch {
+                return "Invalid JSON format. Please make sure your embed body is valid JSON.";
             }
-          } 
-        }, 
+          },
+        },
       ],
     });
   }
 
   async run(message, { option, id, body }) {
+    const embedData = JSON.parse(body);
+    const embed = new Discord.MessageEmbed(embedData);
+
     switch (option) {
       case "edit":
         try {
-          message.channel.messages.fetch(id).then((m) => {
-            m.edit({
-              embed: JSON.parse(body) 
-            });
-          });
-        } catch (e) {
-            if (e === "DiscordAPIError: Unknown Message") {
-              return this.client.error(e, message);
-            }
+          const msg = await message.channel.messages.fetch(id);
+          await msg.edit(embed);
+        } catch (err) {
+          console.error(err);
+          return message.reply("Failed to edit message. Make sure the ID is correct and the message is in this channel.");
         }
         break;
+
       case "append":
         try {
-          message.channel.messages.fetch(id).then((m) => {
-            m.edit({
-              embed: {
-                description: m.embeds[0].description + " " + body,
-              },
-            });
-          });
-        } catch (e) {
-            return this.client.error(e, message);
+          const msg = await message.channel.messages.fetch(id);
+          const existingEmbed = msg.embeds[0];
+          const newDescription = (existingEmbed?.description || "") + " " + embedData.description;
+
+          const updatedEmbed = new Discord.MessageEmbed(existingEmbed)
+            .setDescription(newDescription);
+
+          await msg.edit(updatedEmbed);
+        } catch (err) {
+          console.error(err);
+          return message.reply("Failed to append to message. Check the message ID and try again.");
         }
-        break; 
+        break;
+
       case "embed":
         try {
-          let announceChannel = this.client.channels.cache.get(`${id.replace(/</g, "").replace(/>/g, "").replace(/#/g, "")}`);
-          announceChannel.send({
-            embed: JSON.parse(body),
-          });
-        } catch (e) {
-            if (e === "RangeError [COLOR_RANGE]: Color must be within the range 0 - 16777215 (0xFFFFFF).") {
-              return this.client.error(e, message);
-            };
+          const channelId = id.replace(/[<#>]/g, "");
+          const targetChannel = this.client.channels.cache.get(channelId);
+
+          if (!targetChannel || !targetChannel.send)
+            return message.reply("Invalid channel ID or mention.");
+
+          await targetChannel.send(embed);
+        } catch (err) {
+          console.error(err);
+          return message.reply("Failed to send embed to channel.");
         }
-        break;    
+        break;
     }
-    message.delete();
+
+    if (message.deletable) message.delete();
   }
 }; 
