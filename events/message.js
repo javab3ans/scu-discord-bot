@@ -6,6 +6,7 @@ const { JSDOM } = jsdom;
 const dom = new JSDOM();
 const document = dom.window.document;
 const { log } = require("../functions/log.js");
+const { pause } = require("node-gyp/lib/log.js");
 
 module.exports = async (client, message) => {
   // Ignore bots, non-prefix DMs and messages outside guilds
@@ -26,10 +27,16 @@ module.exports = async (client, message) => {
       if (userTicketContent.length > 0 || message.attachments.size > 0) {
         let user = db.get(`suspended${message.author.id}`).value() || false;
 
+        const pauseEmbed = new MessageEmbed()
+          .setColor(client.config.school_color)
+          .setAuthor(message.author.tag, message.author.displayAvatarURL())
+          .setDescription("Your ticket has been paused!")
+          .setFooter(`ModMail Ticket Paused -- ${message.author.tag}`)
+          .attachFiles(["./assets/paused.gif"])
+          .setThumbnail("attachment://paused.gif");
+
         if (user === true || user === "true")
-          return await message.channel.send({
-            embeds: [{ description: `Your ticket has been paused!`, color: client.config.school_color }],
-          });
+          return await message.channel.send(pauseEmbed);
 
         let active = db.get(`support_${message.author.id}`).value();
         let guild = client.guilds.cache.get(client.config.verification.guildID);
@@ -292,7 +299,7 @@ module.exports = async (client, message) => {
             .setTitle("Modmail Ticket Continued!")
             .setDescription(`<@${supportUser.id}>, your thread has **continued**! We're ready to continue!`)
             .setColor("BLUE")
-            .setFiles(["./assets/continued.gif"])
+            .attachFiles(["./assets/continued.gif"])
             .setThumbnail("attachment://continued.gif")
             .setFooter(`ModMail Ticket Continued -- ${supportUser.tag}`);
 
@@ -311,7 +318,7 @@ module.exports = async (client, message) => {
             .setTitle("Modmail Ticket Paused!")
             .setDescription(`<@${supportUser.id}>, your thread has been **paused**!`)
             .setColor("YELLOW")
-            .setFiles(["./assets/paused.gif"])
+            .attachFiles(["./assets/paused.gif"])
             .setThumbnail("attachment://paused.gif")
             .setFooter(`ModMail Ticket Paused -- ${supportUser.tag}`);
 
@@ -335,7 +342,7 @@ module.exports = async (client, message) => {
             .setTitle(`**Admin replied to you!**`)
             .setFooter(`ModMail Ticket Replied -- ${supportUser.tag}`)
             .setDescription(`> ${replyMsg}`)
-            .setFiles(["./assets/reply.gif"])
+            .attachFiles(["./assets/reply.gif"])
             .setThumbnail("attachment://reply.gif");
 
           if (message.attachments.size > 0) {
