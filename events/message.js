@@ -5,8 +5,7 @@ const jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const dom = new JSDOM();
 const document = dom.window.document;
-const { log } = require("../functions/log.js");
-const { pause } = require("node-gyp/lib/log.js");
+const { log } = require("../functions/log.js"); 
 
 module.exports = async (client, message) => {
   // Ignore bots, non-prefix DMs and messages outside guilds
