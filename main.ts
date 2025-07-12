@@ -6,7 +6,7 @@ const config = JSON.parse(new TextDecoder().decode(jsonFile));
 const { bot_id, token, discord_token, oauth_red, oauth_red_url, verification } = config;
 
 // Access nested properties separately
-const { guildID, guildIcon } = verification;
+const { guildID } = verification;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -24,8 +24,7 @@ const OAUTH_AUTH = `oauth2/authorize?client_id=${bot_id}&redirect_uri=${OAUTH_RE
 const OAUTH_TOKEN = "oauth2/token";
 
 const GUILD_INFO = {
-    id: guildID,
-    icon: guildIcon
+    id: guildID 
 };
 
 const digitRegex = /^\d+$/;
