@@ -41,19 +41,23 @@ async function getUserAvatar(userID, avatarID) {
 };
 
 function decimalToRGB(number) {
+    if (typeof number !== "number") {
+        // fallback color if input is invalid or missing
+        return [80, 80, 80];
+    }
+
     const r = (number & 0xff0000) >> 16;
     const g = (number & 0x00ff00) >> 8;
     const b = (number & 0x0000ff);
 
-    let normalizedColor;
+    // Avoid completely black color by using fallback gray
     if (r === 0 && g === 0 && b === 0) {
-        normalizedColor = [80, 80, 80];
-    } else {
-        normalizedColor = [r-10, g-10, b-10];
-    };
+        return [80, 80, 80];
+    }
 
-    return ;
-};
+    // Subtract 10 to darken color safely (ensure no negative values)
+    return [Math.max(r - 10, 0), Math.max(g - 10, 0), Math.max(b - 10, 0)];
+}; 
 
 /**
  *
@@ -63,9 +67,15 @@ function decimalToRGB(number) {
  * @param current
  * @return {string}
  */
-function generateRoleTemplate(role, endChar="", restricted=false, current=false) {
+function generateRoleTemplate(role, endChar = "", restricted = false, current = false) {
     const colorArray = decimalToRGB(role.color);
-    const color = `rgb(${colorArray[0]}, ${colorArray[1]}, ${colorArray[2]})`;
+
+    // Defensive fallback if decimalToRGB fails (shouldn't happen after fix)
+    const safeColorArray = Array.isArray(colorArray) && colorArray.length === 3
+        ? colorArray
+        : [80, 80, 80];
+
+    const color = `rgb(${safeColorArray[0]}, ${safeColorArray[1]}, ${safeColorArray[2]})`;
 
     return `
         <div
@@ -76,7 +86,7 @@ function generateRoleTemplate(role, endChar="", restricted=false, current=false)
             ${role.name} <strong>${endChar}</strong>
         </div>
     `;
-};
+}; 
  
 function generateAndRenderAssignableRoles(assignableRoles) {
     const categoryArray = ["member", "concentration", "rlc", "location", "identity", "tags"];
@@ -87,10 +97,12 @@ function generateAndRenderAssignableRoles(assignableRoles) {
         const normalizedHeader = category.charAt(0).toUpperCase() + category.replace("_", " ").slice(1);
 
         let roleCollection = "";
-        assignableRoles.filter((role) => role.category === category).map((role) => {
-            roleCollection += generateRoleTemplate(role, "+");
+        assignableRoles
+            .filter(role => role.category === category && role && typeof role.color === "number")
+            .map(role => {
+                roleCollection += generateRoleTemplate(role, "+");
         });
-
+ 
         const categoryTemplate = `
             <details open>
                 <summary id="${category}-roles-header">
@@ -141,10 +153,14 @@ function renderCurrentRoles(currentRoles) {
 
 // generateCurrentRoles(userRoles: string[])     // this is only used when roles are given as strings
 function generateCurrentRoles(userRoles) {
-    let matchingRoles = userRoles.map((roleID) => lookupRole(globalRoleMap.allRoles, roleID));
+    // Filter out invalid roles early
+    let matchingRoles = userRoles
+        .map((roleID) => lookupRole(globalRoleMap.allRoles, roleID))
+        .filter(role => role && typeof role.color === "number");
+
     let orderedRoles = matchingRoles.sort((a, b) => b.priority - a.priority);
 
-    globalRoleMap.currentRoles = orderedRoles;   // globalRoleMap.currentRoles: Role[]
+    globalRoleMap.currentRoles = orderedRoles;
     renderCurrentRoles(orderedRoles);
 };
 

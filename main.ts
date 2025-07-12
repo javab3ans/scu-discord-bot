@@ -164,63 +164,55 @@ router
         ctx.response.redirect(DISCORD_API + OAUTH_AUTH)
     })
     .get("/auth", async (ctx) => {
-    // parse response from Discord API authorization (30 char alphanumerical)
-    const regex = /^[A-Za-z0-9]{30}$/
     const code = ctx.request.url.searchParams.get("code");
 
     console.log("Received authorization code:", code);
 
-    const check = regex.test(code) 
-
-    // authorization code is bad
-    if (!check) {
-        console.log("Invalid authorization code. Redirecting to /bad-auth.html");
-        ctx.response.redirect("/bad-auth.html")
-        return
+    if (!code || code.length < 10) {
+        console.warn("Missing or malformed authorization code. Redirecting to /bad-auth.html");
+        ctx.response.redirect("/bad-auth.html");
+        return;
     }
 
     const data = new URLSearchParams({
-        client_id: `${bot_id}`,
-        client_secret: `${discord_token}`,
+        client_id: bot_id,
+        client_secret: discord_token,
         grant_type: "authorization_code",
         code: code,
         redirect_uri: OAUTH_REDIRECT_URL,
         scope: "identify email guilds"
-    })
+    });
 
-    const headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
-    };
-
-    // exchange authorization grant for access token
     try {
         const result = await fetch(DISCORD_API + OAUTH_TOKEN, {
             method: "POST",
-            body: data,
-            headers: headers
-        }); 
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: data
+        });
 
-        const accessToken: AccessToken = await result.json(); 
+        const tokenData: Partial<AccessToken> & { error?: string, error_description?: string } = await result.json();
 
-        console.log("Access Token: " + accessToken.access_token + " " + accessToken.expires_in)
-
-        if (regex.test(accessToken.access_token)) {
-            await ctx.cookies.set("discord-access-token", accessToken.access_token);
-            await ctx.cookies.set("discord-token-expiration", Date.now().toString())  // todo cookie math
-            console.log("User authenticated successfully. Redirecting to dashboard.html...");
-            ctx.response.redirect("/dashboard.html");
-        } else {
-            console.log("Invalid access token received. Redirecting to /bad-auth.html");
-            ctx.response.status = Status.BadRequest
-            ctx.response.redirect("/bad-auth.html")
-            return
+        if (!result.ok || !tokenData.access_token) {
+            console.error("OAuth token exchange failed:", tokenData);
+            ctx.response.status = Status.BadRequest;
+            ctx.response.redirect("/bad-auth.html?error=oauth_exchange_failed");
+            return;
         }
+
+        console.log("Access Token received:", tokenData.access_token);
+
+        await ctx.cookies.set("discord-access-token", tokenData.access_token);
+        await ctx.cookies.set("discord-token-expiration", Date.now().toString());  // TODO: implement real expiration
+
+        console.log("User authenticated successfully. Redirecting to dashboard.html...");
+        ctx.response.redirect("/dashboard.html");
+
     } catch (error) {
-        console.error("Error fetching access token:", error);
-        console.log("Redirecting to /bad-auth.html due to an error.");
+        console.error("Exception during OAuth token fetch:", error);
         ctx.response.status = Status.InternalServerError;
-        ctx.response.redirect("/bad-auth.html");
-        return;
+        ctx.response.redirect("/bad-auth.html?error=server_error");
     }
 })
 
