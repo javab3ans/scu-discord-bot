@@ -65,7 +65,7 @@ module.exports = class verifyCommand extends Command {
 
         try {
             await resend.emails.send({
-                from: `SCU Discord Network <onboarding@resend.dev>`,
+                from: `${message.guild.name} <${this.client.config.resend_email}>`,
                 to: emailAddress,
                 subject: `${message.guild.name} Verification`,
                 html: result,
