@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node .",
-    "start": "pm2 start index.js && pm2 start main.ts --interpreter='deno' --interpreter-args='run -A --allow-net --allow-read' && pm2 log",
-    "restart": "pm2 restart index.js && pm2 restart main.ts --interpreter='deno' --interpreter-args='run -A --allow-net --allow-read' && pm2 log"
+    "start": "pm2 start index.js && pm2 start main.ts --interpreter=deno --interpreter-args=\"run --allow-net --allow-read --allow-env\" && pm2 log",
+    "restart": "pm2 restart index.js && pm2 restart main.ts --interpreter=deno --interpreter-args=\"run --allow-net --allow-read --allow-env\"&& pm2 log"
   },
   "dependencies": {
     "aki-api": "^7.0.1",
