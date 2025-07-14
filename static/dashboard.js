@@ -212,34 +212,78 @@ window.onload = async function() {
 
     const avatarIcon = document.getElementById("avatar-icon");
 
+    // List of trusted origins allowed to serve avatar images
     const TRUSTED_ORIGINS = [
-        "https://login.discordscu.com", // example trusted domain
+        "https://login.discordscu.com",
+        // Add other trusted origins here, e.g.:
+        // "https://cdn.discordapp.com",
     ];
 
-    function isTrustedOrigin(url) {
+    // Allowed image file extensions to avoid risky SVG or script injection vectors
+    const ALLOWED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp"];
+
+    /**
+     * Checks if a URL is from a trusted origin.
+     * @param {string} urlString
+     * @returns {boolean}
+     */
+    function isTrustedOrigin(urlString) {
         try {
-            const parsed = new URL(url);
+            const parsed = new URL(urlString);
             return TRUSTED_ORIGINS.includes(parsed.origin);
-        } catch (e) {
+        } catch {
             return false;
         }
     }
 
-    if (userImageURL && userImageURL !== "null") {
+    /**
+     * Checks if the URL points to an allowed image extension.
+     * @param {string} urlString
+     * @returns {boolean}
+     */
+    function hasAllowedExtension(urlString) {
+        try {
+            const parsed = new URL(urlString);
+            return ALLOWED_EXTENSIONS.some(ext => parsed.pathname.toLowerCase().endsWith(ext));
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Sets the avatar image if the URL is valid and safe.
+     * Falls back to default image on failure.
+     * @param {string} userImageURL
+     */
+    function setAvatarImage(userImageURL) {
+        if (!userImageURL || userImageURL === "null") {
+            avatarIcon.setAttribute("src", "./discord-small.png"); // Safe fallback
+            return;
+        }
+
         try {
             const parsedUrl = new URL(userImageURL, window.location.origin);
-            
-            // Only allow HTTP/HTTPS and known trusted origins
-            if (["http:", "https:"].includes(parsedUrl.protocol) && isTrustedOrigin(parsedUrl.href)) {
+
+            // Check protocol, origin, and extension whitelist
+            if (
+                (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") &&
+                isTrustedOrigin(parsedUrl.href) &&
+                hasAllowedExtension(parsedUrl.href)
+            ) {
                 avatarIcon.setAttribute("src", parsedUrl.href);
             } else {
                 console.warn("Blocked potentially unsafe image URL:", userImageURL);
+                avatarIcon.setAttribute("src", "./discord-small.png");
             }
         } catch (e) {
             console.warn("Invalid URL format:", userImageURL);
+            avatarIcon.setAttribute("src", "./discord-small.png");
         }
-    } 
-     
+    }
+
+    // Example usage:
+    setAvatarImage(userImageURL);
+ 
     // Render roles
     generateCurrentRoles(globalRoleMap.currentRoles);
     generateAndRenderAssignableRoles(globalRoleMap.allRoles.filter((role) => !globalRoleMap.currentRoles.includes(role)));
