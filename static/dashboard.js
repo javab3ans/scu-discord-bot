@@ -212,12 +212,17 @@ window.onload = async function() {
 
     const avatarIcon = document.getElementById("avatar-icon");
 
-    const TRUSTED_IMAGE_ORIGINS = [
-        "https://login.discordscu.com", // example trusted domain 
+    const TRUSTED_ORIGINS = [
+        "https://login.discordscu.com", // example trusted domain
     ];
 
     function isTrustedOrigin(url) {
-        return TRUSTED_IMAGE_ORIGINS.some(origin => url.startsWith(origin));
+        try {
+            const parsed = new URL(url);
+            return TRUSTED_ORIGINS.includes(parsed.origin);
+        } catch (e) {
+            return false;
+        }
     }
 
     if (userImageURL && userImageURL !== "null") {
