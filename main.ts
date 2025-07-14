@@ -3,7 +3,7 @@ import { Application, Router, Response, Cookies, send, Status } from "./deps.ts"
 const jsonFile = await Deno.readFile("./config.json");
 const config = JSON.parse(new TextDecoder().decode(jsonFile));
 
-const { bot_id, token, discord_token, oauth_red, oauth_red_url, verification } = config;
+const { bot_id, token, discord_token, oauth_red, oauth_red_url, verification, oauth_token } = config;
 
 // Access nested properties separately
 const { guildID } = verification;
@@ -21,7 +21,6 @@ const DISCORD_CDN = "https://cdn.discordapp.com/";
 const OAUTH_REDIRECT_URL = DEBUG ? "http://localhost:8000/auth" : `${oauth_red}`;
 const OAUTH_REDIRECT = DEBUG ? "http%3A%2F%2Flocalhost%3A8000%2Fauth" : `${oauth_red_url}`;
 const OAUTH_AUTH = `oauth2/authorize?client_id=${bot_id}&redirect_uri=${OAUTH_REDIRECT}&response_type=code&scope=identify%20guilds`
-const OAUTH_TOKEN = "oauth2/token";
 
 const GUILD_INFO = {
     id: guildID 
@@ -183,7 +182,7 @@ router
     });
 
     try {
-        const result = await fetch(DISCORD_API + OAUTH_TOKEN, {
+        const result = await fetch(DISCORD_API + oauth_token, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
