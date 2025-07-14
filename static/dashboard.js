@@ -1,11 +1,14 @@
 function redirectBrowser(location) {
-    // Only allow relative URLs
-    if (typeof location === "string" && location.startsWith("/")) {
+    // Only allow relative paths that start with a single slash ("/")
+    if (
+        typeof location === "string" &&
+        /^\/(?!\/)/.test(location) // Matches a single-slash-prefixed path only (e.g., "/home", not "//evil.com")
+    ) {
         window.location.replace(location);
     } else {
-        console.error("Invalid redirect target");
+        console.warn("Blocked invalid or unsafe redirect:", location);
     }
-} 
+}
 
 async function getUserInfo() { 
     let response = await fetch("/identity", {
@@ -209,12 +212,20 @@ window.onload = async function() {
 
     const avatarIcon = document.getElementById("avatar-icon");
 
+    const TRUSTED_IMAGE_ORIGINS = [
+        "https://login.discordscu.com", // example trusted domain 
+    ];
+
+    function isTrustedOrigin(url) {
+        return TRUSTED_IMAGE_ORIGINS.some(origin => url.startsWith(origin));
+    }
+
     if (userImageURL && userImageURL !== "null") {
         try {
             const parsedUrl = new URL(userImageURL, window.location.origin);
             
-            // Allow only HTTP or HTTPS protocols
-            if (["http:", "https:"].includes(parsedUrl.protocol)) {
+            // Only allow HTTP/HTTPS and known trusted origins
+            if (["http:", "https:"].includes(parsedUrl.protocol) && isTrustedOrigin(parsedUrl.href)) {
                 avatarIcon.setAttribute("src", parsedUrl.href);
             } else {
                 console.warn("Blocked potentially unsafe image URL:", userImageURL);
@@ -223,8 +234,6 @@ window.onload = async function() {
             console.warn("Invalid URL format:", userImageURL);
         }
     } 
-    
-    document.getElementById("guild-icon").setAttribute("src", "./discord-small.png");
      
     // Render roles
     generateCurrentRoles(globalRoleMap.currentRoles);
