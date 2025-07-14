@@ -1,6 +1,11 @@
 function redirectBrowser(location) {
-    window.location.replace(location);
-}
+    // Only allow relative URLs
+    if (typeof location === "string" && location.startsWith("/")) {
+        window.location.replace(location);
+    } else {
+        console.error("Invalid redirect target");
+    }
+} 
 
 async function getUserInfo() { 
     let response = await fetch("/identity", {
@@ -202,17 +207,25 @@ window.onload = async function() {
     // Set identity details
     document.getElementById("username").innerText = userInfo.username + "#" + userInfo.discriminator;
 
-    // Set the avatar icon's src attribute
     const avatarIcon = document.getElementById("avatar-icon");
-    if (userImageURL !== "null") {
-        avatarIcon.setAttribute("src", userImageURL);
-    } else {
-        avatarIcon.setAttribute("src", "./discord-logo.png"); // Change this to the appropriate image URL
-    }
+
+    if (userImageURL && userImageURL !== "null") {
+        try {
+            const parsedUrl = new URL(userImageURL, window.location.origin);
+            
+            // Allow only HTTP or HTTPS protocols
+            if (["http:", "https:"].includes(parsedUrl.protocol)) {
+                avatarIcon.setAttribute("src", parsedUrl.href);
+            } else {
+                console.warn("Blocked potentially unsafe image URL:", userImageURL);
+            }
+        } catch (e) {
+            console.warn("Invalid URL format:", userImageURL);
+        }
+    } 
     
     document.getElementById("guild-icon").setAttribute("src", "./discord-small.png");
-    
-
+     
     // Render roles
     generateCurrentRoles(globalRoleMap.currentRoles);
     generateAndRenderAssignableRoles(globalRoleMap.allRoles.filter((role) => !globalRoleMap.currentRoles.includes(role)));
