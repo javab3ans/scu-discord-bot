@@ -215,8 +215,8 @@ window.onload = async function() {
     // List of trusted origins allowed to serve avatar images
     const TRUSTED_ORIGINS = [
         "https://login.discordscu.com",
-        // Add other trusted origins here, e.g.:
-        // "https://cdn.discordapp.com",
+        "https://cdn.discordapp.com"
+        // Add other trusted origins here, e.g.: 
     ];
 
     // Allowed image file extensions to avoid risky SVG or script injection vectors
