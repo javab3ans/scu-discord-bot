@@ -10,7 +10,6 @@
     "restart": "pm2 restart index.js && pm2 restart main.ts --interpreter='deno' --interpreter-args='run --allow-net --allow-read' && pm2 log"
   },
   "dependencies": {
-    "aki-api": "^7.0.1",
     "discord.js": "^12.5.3",
     "discord.js-commando": "^0.12.3",
     "dot": "^1.1.3",
