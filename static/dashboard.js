@@ -257,7 +257,7 @@ window.onload = async function() {
      */
     function setAvatarImage(userImageURL) {
         if (!userImageURL || userImageURL === "null") {
-            avatarIcon.src = "./discord-small.png"; // Safe fallback
+            avatarIcon.src = "./discord-small.webp"; // Safe fallback
             return;
         }
 
@@ -273,12 +273,12 @@ window.onload = async function() {
                 avatarIcon.src = parsedUrl.href;
             } else {
                 console.warn("Blocked potentially unsafe image URL:", userImageURL);
-                avatarIcon.src = "./discord-small.png";
+                avatarIcon.src = "./discord-small.webp";
                 // Fallback to default image if URL is not safe
             }
         } catch (e) {
             console.warn("Invalid URL format:", userImageURL);
-            avatarIcon.src = "./discord-small.png";
+            avatarIcon.src = "./discord-small.webp";
         }
     }
 
