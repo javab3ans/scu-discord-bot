@@ -1,17 +1,3 @@
-(function() {
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-
-    const isDiscord = ua.includes("Discord");
-    const isApple = /iPhone|iPad|iPod/i.test(ua);
-
-    if (isDiscord && isApple) {
-        const meta = document.createElement("meta");
-        meta.httpEquiv = "refresh";
-        meta.content = "0;url=https://login.discordscu.com/dashboard.html";
-        document.head.appendChild(meta);
-    }
-})();
-
 function redirectBrowser(location) {
     // Only allow relative paths that start with a single slash ("/")
     if (
