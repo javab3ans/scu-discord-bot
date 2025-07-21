@@ -84,11 +84,11 @@ function determineRoleCategory(name: string): string {
 
 async function getRoles() {
     // requires Bot authorization
-    const response = await fetch(DISCORD_API + "guilds/" + GUILD_INFO.id + "/roles", {
+    const response = await fetch(`${DISCORD_API}guilds/${GUILD_INFO.id}/roles?cb=${Date.now()}`, {
         headers: {
-            "Authorization": "Bot " + `${token}`
+            "Authorization": `Bot ${token}`
         }
-    });
+    }); 
 
     // remove unnecessary role metadata
     const json = await response.json();
@@ -112,11 +112,12 @@ async function getRoles() {
 async function getIdentity(cookies: Cookies, response: Response) {
     const accessToken = await cookies.get("discord-access-token") ?? "";
 
-    const identityResponse = await fetch(DISCORD_API + "users/@me", {
+    const identityResponse = await fetch(`${DISCORD_API}users/@me?cb=${Date.now()}`, {
         headers: {
-            "Authorization": "Bearer " + accessToken
+            "Authorization": `Bearer ${accessToken}`
         }
     });
+
     if (!identityResponse.ok) {
         if (identityResponse.status === 401) {
             response.status = Status.Unauthorized;
@@ -128,11 +129,13 @@ async function getIdentity(cookies: Cookies, response: Response) {
         return "";
     };
 
-    const guildsResponse  = await fetch(DISCORD_API + "users/@me/guilds", {
+    const guildsResponse = await fetch(`${DISCORD_API}users/@me/guilds?cb=${Date.now()}`, {
         headers: {
-            "Authorization": "Bearer " + accessToken
+            "Authorization": `Bearer ${accessToken}`,
+            "Cache-Control": "no-store"
         }
-    });
+    }); 
+
     if ( !guildsResponse.ok && guildsResponse.status === 401) {
         response.status = Status.Unauthorized
         response.redirect("/bad-auth.html?error=invalid_token");
@@ -182,13 +185,14 @@ router
     });
 
     try {
-        const result = await fetch(DISCORD_API + oauth_token, {
+        const result = await fetch(`${DISCORD_API}${oauth_token}?cb=${Date.now()}`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Cache-Control": "no-store, no-cache, must-revalidate"
             },
             body: data
-        });
+        }); 
 
         const tokenData: Partial<AccessToken> & { error?: string, error_description?: string } = await result.json();
 
@@ -232,12 +236,15 @@ router
 
             console.log("Fetching user roles: " + ctx.params.userid)
 
-            const response = await fetch(DISCORD_API + "guilds/" + GUILD_INFO.id + "/members/" + ctx.params.userid, {
-                headers: {
-                    "Authorization": "Bot " + `${token}`
+            const response = await fetch(
+                `${DISCORD_API}guilds/${GUILD_INFO.id}/members/${ctx.params.userid}?cb=${Date.now()}`, 
+                {
+                    headers: {
+                        "Authorization": `Bot ${token}`
+                    }
                 }
-            });
-
+            );
+ 
             // todo need to verify identity?
 
             ctx.response.body = await response.json();
@@ -304,25 +311,26 @@ router
                     body: null
                 };
 
-                fetch(DISCORD_API + roleAPI + roleID, options)
-                    .then((res) => {
-                        console.log(res.status)
-                        res.text().then(console.log)
-                        if (res.status === 429) {
-                            // rate limited
-                        };
-                    })
-                    .catch((err) => {
-                        console.error(err)
-                        ctx.response.status = Status.ServiceUnavailable
-                        return
-                    })
+            fetch(`${DISCORD_API}${roleAPI}${roleID}?cb=${Date.now()}`, options)
+                .then((res) => {
+                    console.log(res.status);
+                    res.text().then(console.log);
+                    if (res.status === 429) {
+                        // rate limited
+                    }
+                })
+                .catch((err) => {
+                    console.error(err);
+                    ctx.response.status = Status.ServiceUnavailable;
+                    return;
+                });
+
             }
 
             // remove roles
             for (const roleID of savePayload.rolesToRemove) {
-                await wait(1000)
-                fetch(DISCORD_API + roleAPI + roleID, {
+                await wait(1000);
+                fetch(`${DISCORD_API}${roleAPI}${roleID}?cb=${Date.now()}`, {
                     headers: {
                         "Authorization": "Bot " + `${token}`
                     },
@@ -356,7 +364,9 @@ app.use(router.routes());
 app.use(router.allowedMethods());
 
 app.use(async (ctx) => {
-    ctx.response.headers.set("Cache-Control", "max-age=604800")
+    ctx.response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
+    ctx.response.headers.set("Pragma", "no-cache");
+    ctx.response.headers.set("Expires", "0");
     await send(ctx, ctx.request.url.pathname, {
         root: DEBUG ? `${Deno.cwd()}/static` : "/home/scu-discord-bot/static",
         index: "index.html",
