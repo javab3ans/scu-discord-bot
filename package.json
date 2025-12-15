@@ -19,7 +19,7 @@
     "lowdb": "^5.1.0",
     "npm": "^11.6.4",
     "pm2": "^6.0.8",
-    "resend": "^6.5.2"
+    "resend": "^6.6.0"
   },
   "author": "Jason Vu",
   "license": "MIT",
